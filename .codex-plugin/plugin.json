@@ -1,6 +1,6 @@
 {
   "name": "narrativeos-agent",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Run the NarrativeOS local 500-chapter novel-writing agent from Codex without connecting to the hosted platform database.",
   "author": {
     "name": "NarrativeOS",

@@ -108,7 +108,7 @@ Build a release archive:
 scripts/build-release-zip
 ```
 
-The output is written to `release/narrativeos-agent-1.0.0.zip`.
+The output is written to `release/narrativeos-agent-1.0.1.zip`.
 
 The archive excludes `.git`, virtualenvs, local env files, build caches, and generated release zips.
 

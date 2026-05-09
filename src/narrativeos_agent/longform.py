@@ -11,7 +11,7 @@ from typing import Any, Dict, Iterable, List, Optional
 from .nosbook import DEFAULT_COVER_PNG, NOSBOOK_SCHEMA_VERSION, NosbookValidationError
 
 
-AGENT_VERSION = "1.0.0"
+AGENT_VERSION = "1.0.1"
 LONGFORM_PROFILE = "longform_500"
 DEFAULT_WORLD_PACK = "urban_mystery_lotus_lane"
 SUPPORTED_WORLDPACKS = {
