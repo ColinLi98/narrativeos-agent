@@ -133,6 +133,34 @@ class AgentCliTests(unittest.TestCase):
             self.assertEqual(checkpoint["last_completed_chapter"], 12)
             self.assertFalse(checkpoint["platform_db_access"])
 
+    def test_generate_source_preserves_initialized_worldpack(self) -> None:
+        with TemporaryDirectory() as temp:
+            source = Path(temp) / "jade"
+
+            self.assertEqual(
+                main(
+                    [
+                        "init",
+                        "--out",
+                        str(source),
+                        "--title",
+                        "Jade Test",
+                        "--worldpack",
+                        "jade_court_romance",
+                    ]
+                ),
+                0,
+            )
+            self.assertEqual(main(["generate", "--source", str(source), "--chapters", "3"]), 0)
+
+            manifest = json.loads((source / "manifest.json").read_text(encoding="utf-8"))
+            chapter = json.loads((source / "chapters" / "0001.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["worldpack"], "jade_court_romance")
+            self.assertEqual(manifest["genre"], "court_romance")
+            self.assertIn("Jade Court", chapter["body"])
+            self.assertIn("Mei", chapter["body"])
+            self.assertNotIn("Lotus Lane", chapter["body"])
+
     def test_longform_500_gate_passes_for_local_renderer(self) -> None:
         with TemporaryDirectory() as temp:
             source = Path(temp) / "agent_500"

@@ -100,7 +100,11 @@ def main(argv: list[str] | None = None) -> int:
     generate.add_argument("--out-dir", "--out", dest="out_dir", default=None, help="Legacy shortcut: initialize this workspace, then generate.")
     generate.add_argument("--chapters", type=int, default=None, help="Target total chapter count. Use 500 for longform release generation.")
     generate.add_argument("--title", default=None)
-    generate.add_argument("--worldpack", default=DEFAULT_WORLD_PACK)
+    generate.add_argument(
+        "--worldpack",
+        default=None,
+        help="World pack id. When omitted with --source, the existing workspace worldpack is preserved.",
+    )
     derivative_group = generate.add_mutually_exclusive_group()
     derivative_group.add_argument("--allow-derivatives", dest="allow_derivatives", action="store_true", default=True)
     derivative_group.add_argument("--no-derivatives", dest="allow_derivatives", action="store_false")
@@ -148,7 +152,7 @@ def main(argv: list[str] | None = None) -> int:
                 source = init_project(
                     Path(args.out_dir),
                     title=args.title or "Local Agent Demo",
-                    worldpack=args.worldpack,
+                    worldpack=args.worldpack or DEFAULT_WORLD_PACK,
                     allow_derivatives=bool(args.allow_derivatives),
                     derivative_of=args.derivative_of,
                     derivative_license_id=args.derivative_license_id,
