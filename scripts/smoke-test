@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+WORK_DIR="$(mktemp -d)"
+
+cleanup() {
+  if [[ "${KEEP_SMOKE_WORKDIR:-0}" == "1" ]]; then
+    echo "Keeping smoke workdir: ${WORK_DIR}"
+  else
+    rm -rf "${WORK_DIR}"
+  fi
+}
+trap cleanup EXIT
+
+AGENT="${REPO_ROOT}/scripts/narrativeos-agent"
+SOURCE_DIR="${WORK_DIR}/source"
+BUNDLE="${WORK_DIR}/story.nosbook"
+PREVIEW="${WORK_DIR}/preview.html"
+
+"${AGENT}" generate --out "${SOURCE_DIR}" --title "NarrativeOS Agent Smoke"
+"${AGENT}" preview --source "${SOURCE_DIR}" --out "${PREVIEW}"
+"${AGENT}" export --source "${SOURCE_DIR}" --out "${BUNDLE}" > "${WORK_DIR}/export.json"
+"${AGENT}" validate "${BUNDLE}" > "${WORK_DIR}/validate.json"
+
+python3 - "$WORK_DIR/validate.json" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+assert payload["status"] == "valid", payload
+assert payload["schema_version"] == "nosbook/v1", payload
+assert payload["chapter_count"] >= 1, payload
+assert payload["cover"]["content_type"] == "image/png", payload
+assert payload["rights"]["can_publish"] is True, payload
+PY
+
+test -s "${BUNDLE}"
+test -s "${PREVIEW}"
+echo "narrativeos-agent smoke passed"

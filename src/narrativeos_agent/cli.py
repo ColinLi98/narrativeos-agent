@@ -87,6 +87,11 @@ def main(argv: list[str] | None = None) -> int:
     generate = sub.add_parser("generate", help="Create a local demo source bundle without platform DB access.")
     generate.add_argument("--out-dir", "--out", dest="out_dir", required=True)
     generate.add_argument("--title", default="Local Agent Demo")
+    derivative_group = generate.add_mutually_exclusive_group()
+    derivative_group.add_argument("--allow-derivatives", dest="allow_derivatives", action="store_true", default=True)
+    derivative_group.add_argument("--no-derivatives", dest="allow_derivatives", action="store_false")
+    generate.add_argument("--derivative-of", default=None, help="Original platform work id when preparing a derivative bundle.")
+    generate.add_argument("--derivative-license-id", default=None, help="Platform derivative license id for derivative bundles.")
 
     validate = sub.add_parser("validate", help="Validate a .nosbook bundle.")
     validate.add_argument("bundle")
@@ -102,7 +107,13 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         if args.command == "generate":
-            source = write_demo_source(Path(args.out_dir), title=args.title)
+            source = write_demo_source(
+                Path(args.out_dir),
+                title=args.title,
+                allow_derivatives=bool(args.allow_derivatives),
+                derivative_of=args.derivative_of,
+                derivative_license_id=args.derivative_license_id,
+            )
             print(json.dumps({"status": "generated", "source_dir": str(source), "platform_db_access": False}, ensure_ascii=False))
             return 0
         if args.command == "validate":

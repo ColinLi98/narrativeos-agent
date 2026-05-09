@@ -4,6 +4,16 @@ NarrativeOS Agent is the local-first creator tool for writing, validating, previ
 
 This repository is intentionally separate from the hosted NarrativeOS marketplace. It does not connect to the platform database, does not use platform workers, and does not upload anything unless the user explicitly takes a bundle to the website.
 
+## What Is Included
+
+- installable Python CLI: `narrativeos-agent`
+- Codex plugin manifest and skill
+- local generate / preview / export / validate commands
+- `.nosbook` cover asset validation
+- derivative-work metadata support
+- sample `.nosbook` bundle under `examples/`
+- release zip builder under `scripts/build-release-zip`
+
 ## Install
 
 ```bash
@@ -20,7 +30,7 @@ python3 -m narrativeos_agent.cli --help
 
 ## Use with Codex
 
-Open this repo in Codex and ask it to run the agent commands for your story workspace. A typical local flow is:
+Open this repo in Codex and ask it to run the NarrativeOS Agent skill for your story workspace. A typical local flow is:
 
 ```bash
 narrativeos-agent generate --out ./local_story --title "My Story"
@@ -30,6 +40,17 @@ narrativeos-agent validate ./my_story.nosbook
 ```
 
 You can edit the JSON files in `local_story/chapters/` directly or ask Codex to revise them before exporting again.
+
+For derivative works after receiving a platform license:
+
+```bash
+narrativeos-agent generate \
+  --out ./derived_story \
+  --title "My Licensed Derivative" \
+  --derivative-of "<platform-work-ref>" \
+  --derivative-license-id "<platform-license-ref>" \
+  --no-derivatives
+```
 
 ## Bundle Contract
 
@@ -41,9 +62,50 @@ A `.nosbook` contains:
 - `rights_attestation.json`
 - `provenance.json`
 - `content_hashes.json`
-- optional cover/media files
+- `cover/cover.png`, `cover.jpg`, `cover.jpeg`, or `cover.webp`
 
-The hosted marketplace accepts `.nosbook` bundles for review and publishing. Large chapter bodies and bundle archives belong in object storage on the platform side; the platform database should only keep metadata, hashes, purchases, royalties, review status, and audit records.
+Cover requirements:
+
+- PNG, JPEG, or WebP
+- max 2 MB
+- SVG is intentionally blocked in v1
+
+The hosted marketplace accepts `.nosbook` bundles for review and publishing. The agent does not write platform data; the website extracts the uploaded bundle into its own storage, review, purchase, royalty, and audit records.
+
+## Creator Quickstart
+
+Read [docs/creator_quickstart.md](docs/creator_quickstart.md) for the full creator flow:
+
+1. install
+2. generate a local story
+3. preview
+4. export and validate
+5. upload to [pilot.lixidol.com/marketplace](https://pilot.lixidol.com/marketplace)
+
+## Codex Plugin
+
+This repository is also a Codex plugin package. The plugin entry is:
+
+- `.codex-plugin/plugin.json`
+- `skills/narrativeos-agent/SKILL.md`
+- `scripts/narrativeos-agent`
+- `scripts/smoke-test`
+
+After installing or opening the repo in Codex, ask:
+
+> 用 NarrativeOS Agent 在本地生成一本小说，并导出 marketplace-ready `.nosbook`。
+
+## Release Zip
+
+Build a release archive:
+
+```bash
+scripts/build-release-zip
+```
+
+The output is written to `release/narrativeos-agent-0.1.0.zip`.
+
+The archive excludes `.git`, virtualenvs, local env files, build caches, and generated release zips.
 
 ## Local Data Boundary
 

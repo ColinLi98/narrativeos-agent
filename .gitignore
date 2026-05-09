@@ -11,5 +11,7 @@ build/
 local_story/
 *.nosbook
 *.html
+!examples/*.nosbook
+!examples/*.html
 .env
 .env.*

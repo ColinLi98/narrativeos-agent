@@ -1,0 +1,11 @@
+{
+  "chapter_index": 1,
+  "title": "Chapter 1",
+  "body": "The room changed after choice 1. A cup rang softly on the table, and the character made one concrete decision before the scene turned.",
+  "choices": [
+    {
+      "id": "c1",
+      "text": "Continue the investigation"
+    }
+  ]
+}

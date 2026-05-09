@@ -1,0 +1,8 @@
+{
+  "schema_version": "nosbook/v1",
+  "title": "NarrativeOS Agent Sample",
+  "creator_display_name": "Local Creator",
+  "genre": "original",
+  "chapter_count": 3,
+  "price_credits": 9
+}

@@ -1,0 +1,26 @@
+name: narrativeos-agent-ci
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile
+        run: python -m py_compile src/narrativeos_agent/*.py
+      - name: Unit tests
+        run: PYTHONPATH=src python -m unittest discover -s tests -q
+      - name: Plugin and release smoke
+        run: |
+          python -m json.tool .codex-plugin/plugin.json >/dev/null
+          bash -n scripts/narrativeos-agent scripts/smoke-test scripts/build-release-zip
+          scripts/smoke-test
+          scripts/build-release-zip
+          unzip -t release/narrativeos-agent-0.1.0.zip

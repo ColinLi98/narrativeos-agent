@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+VERSION="$(
+  python3 - "${REPO_ROOT}/pyproject.toml" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+match = re.search(r'^version\s*=\s*"([^"]+)"', text, re.MULTILINE)
+if not match:
+    raise SystemExit("version not found")
+print(match.group(1))
+PY
+)"
+RELEASE_DIR="${REPO_ROOT}/release"
+ZIP_PATH="${RELEASE_DIR}/narrativeos-agent-${VERSION}.zip"
+
+mkdir -p "${RELEASE_DIR}"
+rm -f "${ZIP_PATH}"
+
+(
+  cd "${REPO_ROOT}"
+  zip -qr "${ZIP_PATH}" . \
+    -x ".git/*" \
+    -x ".venv/*" \
+    -x "venv/*" \
+    -x "__pycache__/*" \
+    -x "*/__pycache__/*" \
+    -x ".pytest_cache/*" \
+    -x "*.pyc" \
+    -x "release/*" \
+    -x "build/*" \
+    -x "dist/*" \
+    -x "*.egg-info/*" \
+    -x ".env" \
+    -x ".env.*" \
+    -x "local_story/*"
+)
+
+echo "${ZIP_PATH}"

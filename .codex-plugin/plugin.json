@@ -1,0 +1,41 @@
+{
+  "name": "narrativeos-agent",
+  "version": "0.1.0",
+  "description": "Run the NarrativeOS local novel-writing agent from Codex without connecting to the hosted platform database.",
+  "author": {
+    "name": "NarrativeOS",
+    "url": "https://pilot.lixidol.com"
+  },
+  "homepage": "https://pilot.lixidol.com/marketplace",
+  "repository": "https://github.com/ColinLi98/narrativeos-agent",
+  "license": "AGPL-3.0-or-later",
+  "keywords": [
+    "novel-writing",
+    "creator-tools",
+    "nosbook",
+    "marketplace"
+  ],
+  "skills": "./skills/",
+  "scripts": "./scripts/",
+  "interface": {
+    "displayName": "NarrativeOS Agent",
+    "shortDescription": "Generate, validate, preview, and export .nosbook novels locally.",
+    "longDescription": "NarrativeOS Agent is a local-first creator plugin for drafting novels with Codex, validating the .nosbook publishing contract, previewing chapters, and exporting marketplace-ready bundles with cover assets and rights metadata.",
+    "developerName": "NarrativeOS",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write",
+      "Local Files"
+    ],
+    "websiteURL": "https://pilot.lixidol.com",
+    "privacyPolicyURL": "https://pilot.lixidol.com/marketplace/privacy",
+    "termsOfServiceURL": "https://pilot.lixidol.com/marketplace/terms",
+    "defaultPrompt": [
+      "用 NarrativeOS Agent 在本地生成一本小说",
+      "校验并导出 .nosbook 作品包",
+      "预览我的本地小说章节"
+    ],
+    "brandColor": "#22D3EE"
+  }
+}
