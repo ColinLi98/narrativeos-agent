@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
 from narrativeos_agent.cli import main
+from narrativeos_agent.longform import validate_project
 from narrativeos_agent.nosbook import NosbookValidationError, export_nosbook, validate_nosbook_file, write_demo_source
 
 
@@ -111,6 +112,42 @@ class AgentCliTests(unittest.TestCase):
             self.assertFalse(summary["rights"]["allow_derivatives"])
             self.assertTrue(summary["rights"]["is_derivative"])
             self.assertEqual(result.provenance["original_work_id"], "work_redacted")
+
+    def test_longform_init_generate_continue_validate_export(self) -> None:
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            source = root / "longform"
+            bundle = root / "longform.nosbook"
+            preview = root / "preview.html"
+
+            self.assertEqual(main(["init", "--out", str(source), "--title", "Longform Test"]), 0)
+            self.assertEqual(main(["generate", "--source", str(source), "--chapters", "10"]), 0)
+            self.assertEqual(main(["continue", "--source", str(source), "--chapters", "2"]), 0)
+            self.assertEqual(main(["validate", "--source", str(source), "--profile", "local"]), 0)
+            self.assertEqual(main(["preview", "--source", str(source), "--out", str(preview)]), 0)
+            self.assertEqual(main(["export", "--source", str(source), "--out", str(bundle)]), 0)
+
+            validation = validate_nosbook_file(bundle)
+            self.assertEqual(len(validation.chapters), 12)
+            checkpoint = json.loads((source / "state" / "checkpoint.json").read_text(encoding="utf-8"))
+            self.assertEqual(checkpoint["last_completed_chapter"], 12)
+            self.assertFalse(checkpoint["platform_db_access"])
+
+    def test_longform_500_gate_passes_for_local_renderer(self) -> None:
+        with TemporaryDirectory() as temp:
+            source = Path(temp) / "agent_500"
+
+            self.assertEqual(main(["init", "--out", str(source), "--title", "Agent 500 Test"]), 0)
+            self.assertEqual(main(["generate", "--source", str(source), "--chapters", "500"]), 0)
+            self.assertEqual(main(["validate", "--source", str(source), "--profile", "longform_500"]), 0)
+
+            summary = validate_project(source, profile="longform_500")
+            self.assertTrue(summary.ready)
+            self.assertEqual(summary.completed_chapters, 500)
+            self.assertEqual(summary.hard_fail_count, 0)
+            self.assertEqual(summary.issue_counts.get("Q03"), 0)
+            quality_report = json.loads((source / "quality" / "longform_500_summary.json").read_text(encoding="utf-8"))
+            self.assertTrue(quality_report["ready"])
 
     def test_zip_with_unsupported_cover_is_rejected(self) -> None:
         with TemporaryDirectory() as temp:

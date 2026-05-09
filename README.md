@@ -1,6 +1,6 @@
 # NarrativeOS Agent
 
-NarrativeOS Agent is the local-first creator tool for writing, validating, previewing, and exporting novels as `.nosbook` bundles.
+NarrativeOS Agent is the local-first creator tool for writing, checkpointing, validating, previewing, and exporting longform novels as `.nosbook` bundles.
 
 This repository is intentionally separate from the hosted NarrativeOS marketplace. It does not connect to the platform database, does not use platform workers, and does not upload anything unless the user explicitly takes a bundle to the website.
 
@@ -8,7 +8,7 @@ This repository is intentionally separate from the hosted NarrativeOS marketplac
 
 - installable Python CLI: `narrativeos-agent`
 - Codex plugin manifest and skill
-- local generate / preview / export / validate commands
+- local 500-chapter generate / continue / preview / export / validate commands
 - `.nosbook` cover asset validation
 - derivative-work metadata support
 - sample `.nosbook` bundle under `examples/`
@@ -33,23 +33,28 @@ python3 -m narrativeos_agent.cli --help
 Open this repo in Codex and ask it to run the NarrativeOS Agent skill for your story workspace. A typical local flow is:
 
 ```bash
-narrativeos-agent generate --out ./local_story --title "My Story"
+narrativeos-agent init --out ./local_story --title "My Story"
+narrativeos-agent generate --source ./local_story --chapters 500
+narrativeos-agent validate --source ./local_story --profile longform_500
 narrativeos-agent preview --source ./local_story --out ./local_story/preview.html
 narrativeos-agent export --source ./local_story --out ./my_story.nosbook
 narrativeos-agent validate ./my_story.nosbook
 ```
+
+Generation checkpoints each completed chapter under `local_story/state/checkpoint.json`. If a run is interrupted, rerun `generate` or use `continue` and the Agent resumes from the last completed chapter.
 
 You can edit the JSON files in `local_story/chapters/` directly or ask Codex to revise them before exporting again.
 
 For derivative works after receiving a platform license:
 
 ```bash
-narrativeos-agent generate \
+narrativeos-agent init \
   --out ./derived_story \
   --title "My Licensed Derivative" \
   --derivative-of "<platform-work-ref>" \
   --derivative-license-id "<platform-license-ref>" \
   --no-derivatives
+narrativeos-agent generate --source ./derived_story --chapters 500
 ```
 
 ## Bundle Contract
@@ -103,7 +108,7 @@ Build a release archive:
 scripts/build-release-zip
 ```
 
-The output is written to `release/narrativeos-agent-0.1.0.zip`.
+The output is written to `release/narrativeos-agent-1.0.0.zip`.
 
 The archive excludes `.git`, virtualenvs, local env files, build caches, and generated release zips.
 

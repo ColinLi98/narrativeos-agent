@@ -19,7 +19,9 @@ SOURCE_DIR="${WORK_DIR}/source"
 BUNDLE="${WORK_DIR}/story.nosbook"
 PREVIEW="${WORK_DIR}/preview.html"
 
-"${AGENT}" generate --out "${SOURCE_DIR}" --title "NarrativeOS Agent Smoke"
+"${AGENT}" init --out "${SOURCE_DIR}" --title "NarrativeOS Agent Smoke"
+"${AGENT}" generate --source "${SOURCE_DIR}" --chapters 10 > "${WORK_DIR}/generate.json"
+"${AGENT}" validate --source "${SOURCE_DIR}" --profile local > "${WORK_DIR}/source_validate.json"
 "${AGENT}" preview --source "${SOURCE_DIR}" --out "${PREVIEW}"
 "${AGENT}" export --source "${SOURCE_DIR}" --out "${BUNDLE}" > "${WORK_DIR}/export.json"
 "${AGENT}" validate "${BUNDLE}" > "${WORK_DIR}/validate.json"
@@ -32,7 +34,7 @@ from pathlib import Path
 payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
 assert payload["status"] == "valid", payload
 assert payload["schema_version"] == "nosbook/v1", payload
-assert payload["chapter_count"] >= 1, payload
+assert payload["chapter_count"] == 10, payload
 assert payload["cover"]["content_type"] == "image/png", payload
 assert payload["rights"]["can_publish"] is True, payload
 PY

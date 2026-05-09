@@ -1,11 +1,11 @@
 ---
 name: narrativeos-agent
-description: Use when a creator wants Codex to generate, edit, validate, preview, or export a local NarrativeOS .nosbook novel bundle for marketplace upload.
+description: Use when a creator wants Codex to generate up to 500 chapters, edit, validate, preview, or export a local NarrativeOS .nosbook novel bundle for marketplace upload.
 ---
 
 # NarrativeOS Agent
 
-Use this skill for local creator workflows only. The agent writes local files, validates `.nosbook` bundles, and exports portable work packages. It must not connect to the hosted platform database or use production marketplace credentials.
+Use this skill for local creator workflows only. The agent writes local files, checkpoints longform generation, validates `.nosbook` bundles, and exports portable work packages. It must not connect to the hosted platform database or use production marketplace credentials.
 
 ## Safety Contract
 
@@ -27,10 +27,21 @@ narrativeos-agent export --source ./local_story --out ./my_story.nosbook
 narrativeos-agent validate ./my_story.nosbook
 ```
 
+For 500-chapter local longform generation:
+
+```bash
+narrativeos-agent init --out ./local_story --title "My Longform Story" --worldpack urban_mystery_lotus_lane
+narrativeos-agent generate --source ./local_story --chapters 500
+narrativeos-agent validate --source ./local_story --profile longform_500
+narrativeos-agent preview --source ./local_story --out ./local_story/preview.html
+narrativeos-agent export --source ./local_story --out ./my_longform_story.nosbook
+```
+
 From the repository without installation:
 
 ```bash
-PYTHONPATH=src python3 -m narrativeos_agent.cli generate --out ./local_story --title "My Story"
+PYTHONPATH=src python3 -m narrativeos_agent.cli init --out ./local_story --title "My Story"
+PYTHONPATH=src python3 -m narrativeos_agent.cli generate --source ./local_story --chapters 500
 PYTHONPATH=src python3 -m narrativeos_agent.cli export --source ./local_story --out ./my_story.nosbook
 PYTHONPATH=src python3 -m narrativeos_agent.cli validate ./my_story.nosbook
 ```
@@ -53,6 +64,8 @@ Report:
 - source directory path
 - `.nosbook` bundle path
 - preview HTML path when created
+- checkpoint chapter count
+- longform quality status
 - validation status
 - cover status
 - derivative permission state

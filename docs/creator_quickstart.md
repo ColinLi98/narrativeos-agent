@@ -18,13 +18,19 @@ python3 -m venv .venv
 python3 -m pip install -e .
 ```
 
-## 2. Generate A Local Story Workspace
+## 2. Generate A Local Longform Story Workspace
 
 ```bash
-narrativeos-agent generate --out ./local_story --title "My First Local Novel"
+narrativeos-agent init --out ./local_story --title "My First Local Novel" --worldpack urban_mystery_lotus_lane
+narrativeos-agent generate --source ./local_story --chapters 500
+narrativeos-agent validate --source ./local_story --profile longform_500
 ```
 
-This creates local JSON source files only. It does not connect to the NarrativeOS platform database.
+This creates local JSON source files only. It checkpoints every completed chapter and does not connect to the NarrativeOS platform database. If generation is interrupted, rerun `generate` with the same `--source` and target chapter count, or append chapters with:
+
+```bash
+narrativeos-agent continue --source ./local_story --chapters 50
+```
 
 You can edit:
 
@@ -70,12 +76,14 @@ Cover requirements:
 If you licensed an existing marketplace work for derivative creation, include the platform work and license references:
 
 ```bash
-narrativeos-agent generate \
+narrativeos-agent init \
   --out ./derived_story \
   --title "My Licensed Derivative" \
   --derivative-of "<platform-work-ref>" \
   --derivative-license-id "<platform-license-ref>" \
   --no-derivatives
+narrativeos-agent generate --source ./derived_story --chapters 500
+narrativeos-agent validate --source ./derived_story --profile longform_500
 ```
 
 The exported bundle records the original work and derivative license in `rights_attestation.json` and `provenance.json`.

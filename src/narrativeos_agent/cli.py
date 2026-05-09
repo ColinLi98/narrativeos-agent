@@ -6,6 +6,7 @@ from html import escape
 from pathlib import Path
 from typing import Any
 
+from .longform import DEFAULT_WORLD_PACK, continue_project, generate_project, init_project, validate_project
 from .nosbook import NosbookValidationError, export_nosbook, validate_nosbook_file, write_demo_source
 
 
@@ -84,17 +85,36 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="NarrativeOS local agent bundle tools.")
     sub = parser.add_subparsers(dest="command", required=True)
 
+    init = sub.add_parser("init", help="Create a local longform story workspace.")
+    init.add_argument("--out", required=True)
+    init.add_argument("--title", default="Local Longform Novel")
+    init.add_argument("--worldpack", default=DEFAULT_WORLD_PACK)
+    init_derivative_group = init.add_mutually_exclusive_group()
+    init_derivative_group.add_argument("--allow-derivatives", dest="allow_derivatives", action="store_true", default=True)
+    init_derivative_group.add_argument("--no-derivatives", dest="allow_derivatives", action="store_false")
+    init.add_argument("--derivative-of", default=None)
+    init.add_argument("--derivative-license-id", default=None)
+
     generate = sub.add_parser("generate", help="Create a local demo source bundle without platform DB access.")
-    generate.add_argument("--out-dir", "--out", dest="out_dir", required=True)
-    generate.add_argument("--title", default="Local Agent Demo")
+    generate.add_argument("--source", default=None, help="Existing local story workspace to generate into.")
+    generate.add_argument("--out-dir", "--out", dest="out_dir", default=None, help="Legacy shortcut: initialize this workspace, then generate.")
+    generate.add_argument("--chapters", type=int, default=None, help="Target total chapter count. Use 500 for longform release generation.")
+    generate.add_argument("--title", default=None)
+    generate.add_argument("--worldpack", default=DEFAULT_WORLD_PACK)
     derivative_group = generate.add_mutually_exclusive_group()
     derivative_group.add_argument("--allow-derivatives", dest="allow_derivatives", action="store_true", default=True)
     derivative_group.add_argument("--no-derivatives", dest="allow_derivatives", action="store_false")
     generate.add_argument("--derivative-of", default=None, help="Original platform work id when preparing a derivative bundle.")
     generate.add_argument("--derivative-license-id", default=None, help="Platform derivative license id for derivative bundles.")
 
+    continue_cmd = sub.add_parser("continue", help="Append chapters to an existing local story workspace.")
+    continue_cmd.add_argument("--source", required=True)
+    continue_cmd.add_argument("--chapters", type=int, required=True, help="Additional chapters to generate.")
+
     validate = sub.add_parser("validate", help="Validate a .nosbook bundle.")
-    validate.add_argument("bundle")
+    validate.add_argument("bundle", nargs="?")
+    validate.add_argument("--source", default=None, help="Validate a local story workspace instead of a .nosbook.")
+    validate.add_argument("--profile", default="nosbook", choices=["nosbook", "local", "longform_500"])
 
     export = sub.add_parser("export", help="Export a source directory to .nosbook.")
     export.add_argument("--source-dir", "--source", dest="source_dir", required=True)
@@ -106,17 +126,57 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
     try:
+        if args.command == "init":
+            source = init_project(
+                Path(args.out),
+                title=args.title,
+                worldpack=args.worldpack,
+                allow_derivatives=bool(args.allow_derivatives),
+                derivative_of=args.derivative_of,
+                derivative_license_id=args.derivative_license_id,
+            )
+            print(json.dumps({"status": "initialized", "source_dir": str(source), "platform_db_access": False}, ensure_ascii=False))
+            return 0
         if args.command == "generate":
+            if args.source:
+                result = generate_project(Path(args.source), target_chapters=int(args.chapters or 3), title=args.title, worldpack=args.worldpack)
+                print(json.dumps(result, ensure_ascii=False, indent=2))
+                return 0
+            if not args.out_dir:
+                raise NosbookValidationError("nosbook_source_dir_missing", details={"hint": "Use --source or --out."})
+            if args.chapters and int(args.chapters) > 3:
+                source = init_project(
+                    Path(args.out_dir),
+                    title=args.title or "Local Agent Demo",
+                    worldpack=args.worldpack,
+                    allow_derivatives=bool(args.allow_derivatives),
+                    derivative_of=args.derivative_of,
+                    derivative_license_id=args.derivative_license_id,
+                )
+                result = generate_project(source, target_chapters=int(args.chapters), title=args.title or "Local Agent Demo", worldpack=args.worldpack)
+                print(json.dumps(result, ensure_ascii=False, indent=2))
+                return 0
             source = write_demo_source(
                 Path(args.out_dir),
-                title=args.title,
+                title=args.title or "Local Agent Demo",
                 allow_derivatives=bool(args.allow_derivatives),
                 derivative_of=args.derivative_of,
                 derivative_license_id=args.derivative_license_id,
             )
             print(json.dumps({"status": "generated", "source_dir": str(source), "platform_db_access": False}, ensure_ascii=False))
             return 0
+        if args.command == "continue":
+            result = continue_project(Path(args.source), additional_chapters=int(args.chapters))
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+            return 0
         if args.command == "validate":
+            if args.source:
+                profile = "longform_500" if args.profile == "nosbook" else args.profile
+                summary = validate_project(Path(args.source), profile=profile)
+                print(json.dumps({"status": summary.status, **summary.to_dict()}, ensure_ascii=False, indent=2))
+                return 0 if summary.ready else 2
+            if not args.bundle:
+                raise NosbookValidationError("nosbook_required_file_missing", details={"file": ".nosbook"})
             result = validate_nosbook_file(args.bundle)
             print(json.dumps({"status": "valid", **result.public_summary()}, ensure_ascii=False, indent=2))
             return 0

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "narrativeos-agent"
-version = "0.1.0"
-description = "Local-first NarrativeOS agent for generating, validating, previewing, and exporting .nosbook files."
+version = "1.0.0"
+description = "Local-first NarrativeOS agent for 500-chapter longform generation, validation, preview, and .nosbook export."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "AGPL-3.0-or-later" }
